@@ -1,0 +1,24 @@
+🏁 Регрессия после миграции (REST монолита -> gRPC booking-service)
+== Фикстуры (идемпотентно, старая БД) ==
+  [PASS] фикстуры в monolith-db
+== Монолит: чтения, которые остались ==
+  [PASS] user active
+  [PASS] user blacklisted
+  [PASS] hotel operational
+  [PASS] hotel fully-booked
+  [PASS] hotel trusted
+  [PASS] promo get
+== Бронирования: теперь через gRPC ==
+  [PASS] бронь без промо (REST->gRPC)
+  [PASS] бронь с промо (REST->gRPC)
+  [PASS] запись в booking-db (3 -> 5)
+== Негативные кейсы (бизнес-ошибка = не-2xx) ==
+  [PASS] отклонено: неактивный (HTTP 500)
+  [PASS] отклонено: ЧС (HTTP 500)
+  [PASS] отклонено: недоверенный (HTTP 500)
+  [PASS] отклонено: занят (HTTP 500)
+== История (RabbitMQ -> history-db) ==
+  [PASS] история пишется (строк: 5)
+
+ИТОГ: PASS=15 FAIL=0
+✅ Все тесты пройдены

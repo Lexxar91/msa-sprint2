@@ -1,60 +1,139 @@
-version: "3.8"
-
+# Hotelio Task2: монолит-фасад (Strangler Fig) + booking-service + booking-history-service.
+# Запуск: docker network create hotelio-net && docker compose up -d --build
 services:
-  monolith:
-    build:
-      context: ../monolith
-      dockerfile: Dockerfile
-    container_name: hotelio-monolith
-    ports:
-      - "8084:8080"
-    networks:
-      - hotelio-net
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://monolith-db:5432/hotelio
-      SPRING_DATASOURCE_USERNAME: hotelio
-      SPRING_DATASOURCE_PASSWORD: hotelio
-      BOOKING_SERVICE_EXTERNAL_HOST: booking-service
-      BOOKING_SERVICE_EXTERNAL_PORT: 9090
-
+  # ─────────────────────────── LEGACY: монолит ───────────────────────────
   monolith-db:
     image: postgres:15
-    container_name: hotelio-db
     environment:
       POSTGRES_USER: hotelio
       POSTGRES_PASSWORD: hotelio
       POSTGRES_DB: hotelio
-    ports:
-      - "5432:5432"
     volumes:
       - monolith-db-data:/var/lib/postgresql/data
-    networks:
-      - hotelio-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hotelio -d hotelio"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [hotelio-net]
 
-  kafka:
-    image: confluentinc/cp-kafka:7.2.1
-    ports:
-      - "9092:9092"
+  monolith:
+    build:
+      context: ../monolith            # Dockerfile (temurin) + готовый jar
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    networks:
-      - hotelio-net
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.2.1
+      SPRING_DATASOURCE_URL: jdbc:postgresql://monolith-db:5432/hotelio
+      SPRING_DATASOURCE_USERNAME: hotelio
+      SPRING_DATASOURCE_PASSWORD: hotelio
+      # Strangler Fig: входная точка бронирований уходит в новый микросервис по gRPC
+      BOOKING_SERVICE_EXTERNAL_HOST: booking-service
+      BOOKING_SERVICE_EXTERNAL_PORT: "9090"
     ports:
-      - "2181:2181"
+      - "8084:8080"                   # REST-фасад для тестов и листингов
+    depends_on:
+      monolith-db:
+        condition: service_healthy   # ждём готовности БД — гонки больше нет
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/hotels/by-city?city=healthcheck"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+      start_period: 30s             # даём Spring Boot время на старт
+    networks: [hotelio-net]
+
+  # Одноразовый сидер: накатывает фикстуры ПОСЛЕ того, как монолит создал схему
+  # (ddl-auto: create). Заменяет ручной docker exec — стенд самодостаточен.
+  monolith-seed:
+    image: postgres:15
+    depends_on:
+      monolith:
+        condition: service_healthy
+    volumes:
+      - ../../test/init-fixtures.sql:/fixtures/init-fixtures.sql:ro
+    entrypoint:
+      - /bin/sh
+      - -c
+      - psql -v ON_ERROR_STOP=1 postgresql://hotelio:hotelio@monolith-db:5432/hotelio -f /fixtures/init-fixtures.sql
+    networks: [hotelio-net]
+
+  # ─────────────────────────── NEW: микросервисы ─────────────────────────
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"                 # UI для отладки; AMQP 5672 наружу НЕ публикуем
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks: [hotelio-net]
+
+  booking-db:
+    image: postgres:15
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    networks:
-      - hotelio-net
+      POSTGRES_USER: booking
+      POSTGRES_PASSWORD: booking
+      POSTGRES_DB: booking
+    volumes:
+      - booking-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U booking -d booking"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [hotelio-net]
+
+  booking-service:
+    build: ./booking-service
+    environment:
+      DATABASE_URL: postgresql://booking:booking@booking-db:5432/booking
+      MONOLITH_BASE_URL: http://monolith:8080      # внутри сети — имя сервиса, не localhost
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    ports:
+      - "9090:9090"                   # gRPC наружу (дефолт ТЗ localhost:9090)
+    depends_on:
+      booking-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      monolith:
+        condition: service_healthy   # REST-валидации требуют живой монолит
+    networks: [hotelio-net]
+
+  history-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: history
+      POSTGRES_PASSWORD: history
+      POSTGRES_DB: history
+    volumes:
+      - history-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U history -d history"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [hotelio-net]
+
+  booking-history-service:
+    build: ./booking-history-service
+    restart: on-failure
+    environment:
+      HISTORY_DB_URL: postgresql://history:history@history-db:5432/history
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      history-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks: [hotelio-net]
 
 volumes:
   monolith-db-data:
+  booking-db-data:
+  history-db-data:
 
 networks:
   hotelio-net:
-    external: true
+    external: true                    # по ТЗ; создаётся один раз вручную
+ 
