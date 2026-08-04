@@ -1,77 +1,84 @@
+"""Модуль клиента для взаимодействия с монолитным приложением Hotelio."""
+
 import os
 from typing import Any, Optional
 
 import httpx
 
-MONOLITH_BASE_URL = os.getenv("MONOLITH_BASE_URL", "http://monolith:8080")
-TIMEOUT = 5.0
+MONOLITH_BASE_URL: str = os.getenv("MONOLITH_BASE_URL", "http://monolith:8080")
+TIMEOUT: float = 5.0
 
 
 class MonolithError(RuntimeError):
-    """Исключение, возникающее при ошибках взаимодействия с монолитом.
+    """Исключение при ошибках взаимодействия с монолитом.
 
     Используется для обработки сетевых ошибок, таймаутов, а также ошибок
     на стороне сервера (5xx) или неожиданных ошибок клиента (4xx, кроме 400/404).
     """
-    pass
 
 
 class MonolithClient:
     """Клиент для взаимодействия с монолитным приложением Hotelio.
 
-    Этот клиент отвечает исключительно за транспортный уровень: выполнение HTTP-запросов
-    к API монолита и возврат полученных данных. Бизнес-логика обработки этих
-    данных должна быть реализована на уровне сервисов.
+    Отвечает за транспортный уровень: выполнение HTTP-запросов к API монолита
+    и возврат полученных данных. Бизнес-логика обработки этих данных должна
+    быть реализована на уровне сервисов.
 
     Attributes:
-        base_url (str): Базовый URL адрес монолита.
+        base_url: Базовый URL адрес монолита.
     """
 
     def __init__(self, base_url: str = MONOLITH_BASE_URL) -> None:
+        """Инициализирует клиент.
+
+        Args:
+            base_url: Базовый URL адрес монолита.
+        """
         self.base_url = base_url
 
     async def _request(
-            self, method: str, 
-            path: str, 
-            params: Optional[dict] = None,
-            as_text: bool = False
+        self,
+        method: str,
+        path: str,
+        params: Optional[dict] = None,
+        as_text: bool = False,
     ) -> Any:
         """Выполняет HTTP-запрос к монолиту.
 
         Args:
-            method (str): HTTP метод (GET, POST и т.д.).
-            path (str): Путь к эндпоинту.
-            params (Optional[dict]): Параметры запроса.
+            method: HTTP метод (GET, POST и т.д.).
+            path: Путь к эндпоинту.
+            params: Параметры запроса.
+            as_text: Вернуть ответ как текст (вместо JSON).
 
         Returns:
-            Any: JSON-ответ в случае успеха (200 OK), None в случае 400 или 404,
-                 или вызывает MonolithError при других статус-кодах или сетевых ошибках.
+            JSON-ответ или текст в случае успеха (200 OK), None в случае 400 или 404.
 
         Raises:
-            MonolithError: Если произошла сетевая ошибка или сервер вернул ошибку (не 400/404).
+            MonolithError: При сетевой ошибке или статус-коде >= 400 (кроме 400/404).
         """
         try:
             async with httpx.AsyncClient(base_url=self.base_url, timeout=TIMEOUT) as client:
-                r = await client.request(method, path, params=params)
+                response = await client.request(method, path, params=params)
         except httpx.HTTPError as exc:
             raise MonolithError(f"network error {method} {path}: {exc}") from exc
 
-        if r.status_code in (400, 404):
+        if response.status_code in (400, 404):
             return None
-        if r.status_code >= 400:
-            raise MonolithError(f"monolith {r.status_code} on {method} {path}")
-        return r.text if as_text else r.json()      # <-- единственная новая строка
+        if response.status_code >= 400:
+            raise MonolithError(f"monolith {response.status_code} on {method} {path}")
+        return response.text if as_text else response.json()
 
     async def _get_bool(self, path: str) -> bool:
-        """Вспомогательный метод для получения булевого значения из ответа."""
+        """Возвращает булево значение из ответа монолита."""
         return bool(await self._request("GET", path))
 
     async def is_user_active(self, user_id: str) -> bool:
-        """Проверяет, является ли пользователь активным."""
+        """Проверяет, активен ли пользователь."""
         return await self._get_bool(f"/api/users/{user_id}/active")
 
     async def is_user_blacklisted(self, user_id: str) -> bool:
-        """Проверяет, находится ли пользователь в черном списке."""
+        """Проверяет, находится ли пользователь в чёрном списке."""
         return await self._get_bool(f"/api/users/{user_id}/blacklisted")
 
     async def is_user_authorized(self, user_id: str) -> bool:
@@ -79,7 +86,7 @@ class MonolithClient:
         return await self._get_bool(f"/api/users/{user_id}/authorized")
 
     async def get_hotel(self, hotel_id: str) -> Optional[dict]:
-        """Получает информацию о отеле."""
+        """Возвращает информацию об отеле."""
         return await self._request("GET", f"/api/hotels/{hotel_id}")
 
     async def is_hotel_operational(self, hotel_id: str) -> bool:
@@ -93,15 +100,16 @@ class MonolithClient:
     async def validate_promo(self, code: str, user_id: str) -> Optional[dict]:
         """Проверяет применимость промокода для пользователя."""
         return await self._request(
-            "POST", "/api/promos/validate", params={"code": code, "userId": user_id}
+            "POST", "/api/promos/validate",
+            params={"code": code, "userId": user_id},
         )
 
     async def is_hotel_trusted(self, hotel_id: str) -> bool:
         """Проверяет, является ли отель доверенным."""
         return await self._get_bool(f"/api/reviews/hotel/{hotel_id}/trusted")
 
-
     async def get_user_status(self, user_id: str) -> Optional[str]:
+        """Возвращает статус пользователя (ACTIVE, VIP или None)."""
         raw = await self._request("GET", f"/api/users/{user_id}/status", as_text=True)
         if raw is None:
             return None
