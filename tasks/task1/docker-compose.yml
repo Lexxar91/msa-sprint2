@@ -1,4 +1,4 @@
-version: "3.8"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
 
 services:
   monolith:
@@ -8,6 +8,9 @@ services:
     container_name: hotelio-monolith
     ports:
       - "8084:8080"
+    depends_on:
+      monolith-db:
+        condition: service_healthy
     networks:
       - hotelio-net
     environment:
@@ -22,6 +25,11 @@ services:
       POSTGRES_USER: hotelio
       POSTGRES_PASSWORD: hotelio
       POSTGRES_DB: hotelio
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hotelio -d hotelio"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     ports:
       - "5432:5432"
     volumes:

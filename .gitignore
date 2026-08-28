@@ -1,0 +1,4 @@
+.clinerules
+.mypy_cache
+.vscode
+venv

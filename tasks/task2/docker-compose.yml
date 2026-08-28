@@ -135,5 +135,5 @@ volumes:
 
 networks:
   hotelio-net:
-    external: true                    # по ТЗ; создаётся один раз вручную
+    external: true                    
  

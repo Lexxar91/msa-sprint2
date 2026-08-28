@@ -1,0 +1,41 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+title Hotelio — To-Be (после 1-го этапа миграции, Strangler Fig)
+
+Person(user, "Пользователь", "Бронирует жильё через фронтенд")
+
+System_Boundary(monolith, "Hotelio Monolith (фасад + немигрированные модули)") {
+    Container(monolith_app, "Monolith Application", "Java Spring Boot", "REST-фасад. Проксирует /api/bookings в booking-service; хранит логику отелей/юзеров/промо/отзывов")
+    ContainerDb(shared_db, "Monolith DB", "PostgreSQL", "users, hotels, promos, reviews")
+}
+
+System_Boundary(new_services, "Мигрированные сервисы (Python 3.14)") {
+    Container(booking_svc, "Booking Service", "Python 3.14, FastAPI, gRPC", "Валидация и создание бронирований. gRPC-сервер по booking.proto")
+    ContainerDb(booking_db, "Booking DB", "PostgreSQL", "Бронирования (OLTP)")
+    Container(history_svc, "Booking History Service", "Python 3.14, FastAPI", "Подсчёт статистики по событиям, без нагрузки на боевую БД")
+    ContainerDb(history_db, "History DB", "PostgreSQL", "История и агрегаты (read-optimized)")
+}
+
+Container(rabbitmq, "RabbitMQ", "Message Broker", "Topic exchange: события BookingCreated / BookingUpdated")
+
+' Клиент ходит в фасад
+Rel(user, monolith_app, "Использует API", "HTTPS")
+
+' Strangler Fig: фасад проксирует бронирования в новый сервис
+Rel(monolith_app, booking_svc, "Проксирует POST /api/bookings", "gRPC :9090")
+
+' Данные для валидации — через REST из монолита (по ТЗ, без переноса логики)
+Rel(booking_svc, monolith_app, "Получает отель / пользователя / промокод", "REST")
+
+' Работа с данными
+Rel(booking_svc, booking_db, "Читает и пишет бронирования", "SQL")
+Rel(monolith_app, shared_db, "Читает и пишет", "SQL")
+
+' Асинхронщина через RabbitMQ
+Rel(booking_svc, rabbitmq, "Публикует BookingCreated / BookingUpdated", "AMQP")
+Rel(rabbitmq, history_svc, "Доставляет события (подписка на очередь)", "AMQP")
+Rel(history_svc, history_db, "Пишет историю и агрегаты", "SQL")
+
+@enduml

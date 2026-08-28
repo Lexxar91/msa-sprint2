@@ -9,22 +9,37 @@ const typeDefs = gql`
     name: String
     city: String
     stars: Int
+    address: String
   }
 
-  type Query {
-    hotelsByIds(ids: [ID!]!): [Hotel]
+  extend type Booking @key(fields: "id") {
+    id: ID! @external
+    hotelId: String! @external
+    hotel: Hotel @requires(fields: "hotelId")
   }
 `;
 
 const resolvers = {
-  Hotel: {
-    __resolveReference: async ({ id }) => {
-      // TODO: Реальный вызов к hotel-сервису или заглушка
+Hotel: {
+    __resolveReference: async (reference) => {
+      return {
+        id: reference.id,
+        name: `Hotel ${reference.id}`,
+        city: "Moscow",
+        stars: 5,
+        address: "Red Square, 1"
+      };
     },
   },
-  Query: {
-    hotelsByIds: async (_, { ids }) => {
-      // TODO: Заглушка или REST-запрос
+  Booking: {
+    hotel: async (booking) => {
+      return {
+        id: booking.hotelId,
+        name: `Hotel ${booking.hotelId}`,
+        city: "Moscow",
+        stars: 5,
+        address: "Red Square, 1"
+      };
     },
   },
 };
