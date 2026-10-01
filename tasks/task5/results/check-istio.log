@@ -1,0 +1,13 @@
+NAME                                    READY   STATUS    RESTARTS      AGE
+grafana-665dcbcb9b-dzr8w                1/1     Running   4 (21d ago)   71d
+istio-egressgateway-7c9dfb4748-lt5hd    1/1     Running   5 (21d ago)   71d
+istio-ingressgateway-7bd9cc686b-k796j   1/1     Running   5 (21d ago)   71d
+istiod-858f6bd4d7-rxwln                 1/1     Running   5 (21d ago)   71d
+jaeger-d5f9f848-phktr                   1/1     Running   3 (21d ago)   69d
+prometheus-65c465688f-bn4q6             2/2     Running   8 (21d ago)   71d
+deployment "booking-service-v1" successfully rolled out
+deployment "booking-service-v2" successfully rolled out
+NAME                                  READY   STATUS    RESTARTS   AGE
+booking-service-v1-8598bd55f6-b52r5   2/2     Running   0          2m36s
+booking-service-v2-57b8c5fd4-hcdhh    2/2     Running   0          2m9s
+Success: default injection=enabled, v1 и v2 готовы с istio-proxy

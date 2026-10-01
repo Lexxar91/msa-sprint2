@@ -21,7 +21,9 @@ class BookingServiceServicer(booking_pb2_grpc.BookingServiceServicer):
         self.service = service
 
     async def CreateBooking(
-        self, request: booking_pb2.BookingRequest, context: grpc.aio.ServicerContext,
+        self,
+        request: booking_pb2.BookingRequest,
+        context: grpc.aio.ServicerContext,
     ) -> booking_pb2.BookingResponse:
         """Обрабатывает запрос на создание бронирования.
 
@@ -34,7 +36,9 @@ class BookingServiceServicer(booking_pb2_grpc.BookingServiceServicer):
         """
         logging.info(
             "CreateBooking user=%s hotel=%s promo=%r",
-            request.user_id, request.hotel_id, request.promo_code,
+            request.user_id,
+            request.hotel_id,
+            request.promo_code,
         )
 
         try:
@@ -64,7 +68,9 @@ class BookingServiceServicer(booking_pb2_grpc.BookingServiceServicer):
         )
 
     async def ListBookings(
-        self, request: booking_pb2.BookingListRequest, context: grpc.aio.ServicerContext,
+        self,
+        request: booking_pb2.BookingListRequest,
+        context: grpc.aio.ServicerContext,
     ) -> booking_pb2.BookingListResponse:
         """Обрабатывает запрос списка бронирований пользователя.
 

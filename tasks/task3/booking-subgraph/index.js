@@ -8,10 +8,7 @@ import { credentials } from '@grpc/grpc-js';
 
 const { BookingListRequest } = pkg;
 
-const client = new BookingServiceClient(
-  'booking-service:9090',
-  credentials.createInsecure()
-);
+const client = new BookingServiceClient('booking-service:9090', credentials.createInsecure());
 
 const typeDefs = gql`
   type Booking @key(fields: "id") {
@@ -29,6 +26,13 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
+    /**
+     * Возвращает бронирования пользователя после проверки заголовка userid.
+     * @param {*} _ Родительское значение GraphQL.
+     * @param {*} options2 Параметры вызова.
+     * @param {*} options3 Параметры вызова.
+     * @returns {*} Результат обработки вызова.
+     */
     bookingsByUser: async (_, { userId }, { req }) => {
       const headerUserId = req.headers['userid'];
       if (!headerUserId) {
@@ -39,26 +43,55 @@ const resolvers = {
       }
       const request = new BookingListRequest();
       request.setUserId(userId);
-      return new Promise((resolve, reject) => {
-        client.listBookings(request, (err, response) => {
-          if (err) {
-            console.error('gRPC error:', err);
-            reject(new Error('Failed to fetch bookings'));
-          }
-          const bookings = response.getBookingsList().map(b => ({
-            id: b.getId(),
-            userId: b.getUserId(),
-            hotelId: b.getHotelId(),
-            promoCode: b.getPromoCode(),
-            discountPercent: b.getDiscountPercent()
-          }));
-          resolve(bookings);
-        });
-      });
+      return new Promise(
+        /**
+         * Запрашивает бронирования через gRPC-клиент.
+         * @param {*} resolve Завершение Promise с результатом.
+         * @param {*} reject Завершение Promise с ошибкой.
+         * @returns {*} Результат обработки вызова.
+         */
+        (resolve, reject) => {
+          client.listBookings(
+            request,
+            /**
+             * Преобразует gRPC-ответ в список GraphQL-бронирований.
+             * @param {*} err Ошибка gRPC-вызова.
+             * @param {*} response Ответ gRPC-сервиса.
+             * @returns {*} Результат обработки вызова.
+             */
+            (err, response) => {
+              if (err) {
+                console.error('gRPC error:', err);
+                reject(new Error('Failed to fetch bookings'));
+              }
+              const bookings = response.getBookingsList().map(
+                /**
+                 * Преобразует protobuf-бронирование в объект GraphQL.
+                 * @param {*} b Protobuf-бронирование.
+                 * @returns {*} Результат обработки вызова.
+                 */
+                (b) => ({
+                  id: b.getId(),
+                  userId: b.getUserId(),
+                  hotelId: b.getHotelId(),
+                  promoCode: b.getPromoCode(),
+                  discountPercent: b.getDiscountPercent(),
+                }),
+              );
+              resolve(bookings);
+            },
+          );
+        },
+      );
     },
   },
-  
+
   Booking: {
+    /**
+     * Возвращает ссылку на бронирование для Федерации.
+     * @param {*} reference Ссылка Федерации с идентификатором.
+     * @returns {*} Результат обработки вызова.
+     */
     __resolveReference: async (reference) => {
       return { id: reference.id };
     },
@@ -71,7 +104,19 @@ const server = new ApolloServer({
 
 startStandaloneServer(server, {
   listen: { port: 4001 },
+
+  /**
+   * Передаёт HTTP-запрос в контекст GraphQL.
+   * @param {*} options1 Параметры вызова.
+   * @returns {*} Результат обработки вызова.
+   */
   context: async ({ req }) => ({ req }),
-}).then(() => {
-  console.log('✅ Booking subgraph ready at http://localhost:4001/');
-});
+}).then(
+  /**
+   * Сообщает о запуске GraphQL-сервера.
+   * @returns {*} Результат обработки вызова.
+   */
+  () => {
+    console.log('✅ Booking subgraph ready at http://localhost:4001/');
+  },
+);

@@ -9,7 +9,9 @@ import os
 
 import aio_pika
 
-RABBITMQ_URL: str = os.getenv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/")
+RABBITMQ_URL: str = os.getenv(
+    "RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"
+)
 EXCHANGE_NAME: str = "bookings"
 QUEUE_NAME: str = "booking.history"
 ROUTING_KEY: str = "booking.created"
@@ -21,7 +23,9 @@ async def main() -> None:
     channel = await connection.channel()
 
     exchange = await channel.declare_exchange(
-        EXCHANGE_NAME, aio_pika.ExchangeType.TOPIC, durable=True,
+        EXCHANGE_NAME,
+        aio_pika.ExchangeType.TOPIC,
+        durable=True,
     )
     queue = await channel.declare_queue(QUEUE_NAME, durable=True)
     await queue.bind(exchange, routing_key=ROUTING_KEY)
@@ -31,7 +35,9 @@ async def main() -> None:
         async for message in it:
             async with message.process():
                 event = json.loads(message.body)
-                print("EVENT:", json.dumps(event, ensure_ascii=False, indent=2))
+                print(
+                    "EVENT:", json.dumps(event, ensure_ascii=False, indent=2)
+                )
 
 
 if __name__ == "__main__":

@@ -23,8 +23,13 @@ CREATE TABLE IF NOT EXISTS booking (
 """
 
 COLUMNS: tuple[str, ...] = (
-    "id", "user_id", "hotel_id", "promo_code",
-    "discount_percent", "price", "created_at",
+    "id",
+    "user_id",
+    "hotel_id",
+    "promo_code",
+    "discount_percent",
+    "price",
+    "created_at",
 )
 
 
@@ -98,7 +103,14 @@ class BookingRepository:
 
     @staticmethod
     def _to_dict(row: tuple) -> dict:
-        """Преобразует строку из БД в словарь с корректными типами."""
+        """Преобразует строку из БД в словарь с корректными типами.
+
+        Args:
+            row: Строка результата SQL-запроса.
+
+        Returns:
+            Результат операции, описанной выше.
+        """
         result = dict(zip(COLUMNS, row))
         result["id"] = str(result["id"])
         result["discount_percent"] = float(result["discount_percent"])

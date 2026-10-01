@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # ─────────────────────────── LEGACY: монолит ───────────────────────────
   monolith-db:
     image: postgres:15
     environment:
@@ -11,7 +10,7 @@ services:
     volumes:
       - monolith-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hotelio -d hotelio"]
+      test: ['CMD-SHELL', 'pg_isready -U hotelio -d hotelio']
       interval: 5s
       timeout: 3s
       retries: 12
@@ -25,14 +24,14 @@ services:
       SPRING_DATASOURCE_USERNAME: hotelio
       SPRING_DATASOURCE_PASSWORD: hotelio
       BOOKING_SERVICE_EXTERNAL_HOST: booking-service
-      BOOKING_SERVICE_EXTERNAL_PORT: "9090"
+      BOOKING_SERVICE_EXTERNAL_PORT: '9090'
     ports:
-      - "8084:8080"
+      - '8084:8080'
     depends_on:
       monolith-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/hotels/by-city?city=healthcheck"]
+      test: ['CMD', 'curl', '-fsS', 'http://localhost:8080/api/hotels/by-city?city=healthcheck']
       interval: 5s
       timeout: 3s
       retries: 24
@@ -52,13 +51,12 @@ services:
       - psql -v ON_ERROR_STOP=1 postgresql://hotelio:hotelio@monolith-db:5432/hotelio -f /fixtures/init-fixtures.sql
     networks: [hotelio-net]
 
-  # ─────────────────────────── NEW: микросервисы ─────────────────────────
   rabbitmq:
     image: rabbitmq:3-management
     ports:
-      - "15672:15672"
+      - '15672:15672'
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'check_port_connectivity']
       interval: 5s
       timeout: 5s
       retries: 12
@@ -74,7 +72,7 @@ services:
     volumes:
       - booking-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U booking -d booking"]
+      test: ['CMD-SHELL', 'pg_isready -U booking -d booking']
       interval: 5s
       timeout: 3s
       retries: 12
@@ -87,7 +85,7 @@ services:
       MONOLITH_BASE_URL: http://monolith:8080
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     ports:
-      - "9090:9090"
+      - '9090:9090'
     depends_on:
       booking-db:
         condition: service_healthy
@@ -106,7 +104,7 @@ services:
     volumes:
       - history-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U history -d history"]
+      test: ['CMD-SHELL', 'pg_isready -U history -d history']
       interval: 5s
       timeout: 3s
       retries: 12
@@ -125,11 +123,10 @@ services:
         condition: service_healthy
     networks: [hotelio-net]
 
-  # ─────────────────────────── NEW: GraphQL Federation (Task3) ─────────────────────────
   apollo-gateway:
     build: ./task3/gateway
     ports:
-      - "4000:4000"
+      - '4000:4000'
     depends_on:
       - booking-subgraph
       - hotel-subgraph
@@ -139,7 +136,7 @@ services:
   booking-subgraph:
     build: ./task3/booking-subgraph
     ports:
-      - "4001:4001"
+      - '4001:4001'
     networks:
       - hotelio-net
     depends_on:
@@ -148,7 +145,7 @@ services:
   hotel-subgraph:
     build: ./task3/hotel-subgraph
     ports:
-      - "4002:4002"
+      - '4002:4002'
     networks:
       - hotelio-net
 

@@ -1,7 +1,4 @@
-# Hotelio Task2: монолит-фасад (Strangler Fig) + booking-service + booking-history-service.
-# Запуск: docker network create hotelio-net && docker compose up -d --build
 services:
-  # ─────────────────────────── LEGACY: монолит ───────────────────────────
   monolith-db:
     image: postgres:15
     environment:
@@ -11,7 +8,7 @@ services:
     volumes:
       - monolith-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hotelio -d hotelio"]
+      test: ['CMD-SHELL', 'pg_isready -U hotelio -d hotelio']
       interval: 5s
       timeout: 3s
       retries: 12
@@ -19,29 +16,26 @@ services:
 
   monolith:
     build:
-      context: ../monolith            # Dockerfile (temurin) + готовый jar
+      context: ../monolith
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://monolith-db:5432/hotelio
       SPRING_DATASOURCE_USERNAME: hotelio
       SPRING_DATASOURCE_PASSWORD: hotelio
-      # Strangler Fig: входная точка бронирований уходит в новый микросервис по gRPC
       BOOKING_SERVICE_EXTERNAL_HOST: booking-service
-      BOOKING_SERVICE_EXTERNAL_PORT: "9090"
+      BOOKING_SERVICE_EXTERNAL_PORT: '9090'
     ports:
-      - "8084:8080"                   # REST-фасад для тестов и листингов
+      - '8084:8080'
     depends_on:
       monolith-db:
-        condition: service_healthy   # ждём готовности БД — гонки больше нет
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/hotels/by-city?city=healthcheck"]
+      test: ['CMD', 'curl', '-fsS', 'http://localhost:8080/api/hotels/by-city?city=healthcheck']
       interval: 5s
       timeout: 3s
       retries: 24
-      start_period: 30s             # даём Spring Boot время на старт
+      start_period: 30s
     networks: [hotelio-net]
 
-  # Одноразовый сидер: накатывает фикстуры ПОСЛЕ того, как монолит создал схему
-  # (ddl-auto: create). Заменяет ручной docker exec — стенд самодостаточен.
   monolith-seed:
     image: postgres:15
     depends_on:
@@ -55,13 +49,12 @@ services:
       - psql -v ON_ERROR_STOP=1 postgresql://hotelio:hotelio@monolith-db:5432/hotelio -f /fixtures/init-fixtures.sql
     networks: [hotelio-net]
 
-  # ─────────────────────────── NEW: микросервисы ─────────────────────────
   rabbitmq:
     image: rabbitmq:3-management
     ports:
-      - "15672:15672"                 # UI для отладки; AMQP 5672 наружу НЕ публикуем
+      - '15672:15672'
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'check_port_connectivity']
       interval: 5s
       timeout: 5s
       retries: 12
@@ -77,7 +70,7 @@ services:
     volumes:
       - booking-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U booking -d booking"]
+      test: ['CMD-SHELL', 'pg_isready -U booking -d booking']
       interval: 5s
       timeout: 3s
       retries: 12
@@ -87,17 +80,17 @@ services:
     build: ./booking-service
     environment:
       DATABASE_URL: postgresql://booking:booking@booking-db:5432/booking
-      MONOLITH_BASE_URL: http://monolith:8080      # внутри сети — имя сервиса, не localhost
+      MONOLITH_BASE_URL: http://monolith:8080
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     ports:
-      - "9090:9090"                   # gRPC наружу (дефолт ТЗ localhost:9090)
+      - '9090:9090'
     depends_on:
       booking-db:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
       monolith:
-        condition: service_healthy   # REST-валидации требуют живой монолит
+        condition: service_healthy
     networks: [hotelio-net]
 
   history-db:
@@ -109,7 +102,7 @@ services:
     volumes:
       - history-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U history -d history"]
+      test: ['CMD-SHELL', 'pg_isready -U history -d history']
       interval: 5s
       timeout: 3s
       retries: 12
@@ -135,5 +128,4 @@ volumes:
 
 networks:
   hotelio-net:
-    external: true                    
- 
+    external: true

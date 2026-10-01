@@ -7,12 +7,27 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 
-@SpringBootApplication(scanBasePackages = {"com.hotelio", "com.hotelio.monolith"})
+/**
+ * Приложение MonolithApplication в системе Hotelio.
+ */
+@SpringBootApplication(scanBasePackages = { "com.hotelio", "com.hotelio.monolith" })
 public class MonolithApplication {
+
+    /**
+     * Запускает приложение Spring Boot.
+     *
+     * @param args args
+     */
     public static void main(String[] args) {
         SpringApplication.run(MonolithApplication.class, args);
     }
 
+    /**
+     * Создаёт команду диагностики зарегистрированных сервисов.
+     *
+     * @param ctx ctx
+     * @return результат операции
+     */
     @Bean
     public CommandLineRunner logBeans(ApplicationContext ctx) {
         return args -> {
@@ -23,5 +38,4 @@ public class MonolithApplication {
             }
         };
     }
-
 }

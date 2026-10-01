@@ -1,0 +1,110 @@
+name: Task4 CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - tasks/task4/**
+      - .github/workflows/task4.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - tasks/task4/**
+      - .github/workflows/task4.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: task4-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: booking-service
+  IMAGE_TAG: ${{ github.sha }}
+
+defaults:
+  run:
+    working-directory: tasks/task4
+    shell: bash
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: make build
+      - name: Save Docker image
+        run: docker save "$IMAGE_NAME:$IMAGE_TAG" -o booking-service.tar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: booking-service-image
+          path: tasks/task4/booking-service.tar
+          retention-days: 1
+          if-no-files-found: error
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: booking-service-image
+          path: tasks/task4
+      - name: Load and test Docker image
+        run: |
+          docker load -i booking-service.tar
+          make test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: booking-service-image
+          path: tasks/task4
+      - uses: medyagh/setup-minikube@latest
+        with:
+          driver: docker
+      - name: Install Helm
+        uses: azure/setup-helm@v4.3.0
+      - name: Check Helm chart
+        run: |
+          helm lint ./helm/booking-service -f ./helm/booking-service/values-staging.yaml
+          helm lint ./helm/booking-service -f ./helm/booking-service/values-prod.yaml
+      - name: Load image and deploy to Minikube
+        run: |
+          minikube image load booking-service.tar
+          make deploy
+      - name: Check deployment and DNS
+        run: |
+          kubectl rollout status deployment/booking-service -n staging --timeout=120s
+          ./check-status.sh staging
+          ./check-dns.sh staging
+
+  tag:
+    needs: deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create timestamp tag
+        run: |
+          TAG="task4-$(date -u +%Y%m%d-%H%M%S)-${GITHUB_SHA::7}-$GITHUB_RUN_ID"
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git tag -a "$TAG" -m "Task4 deployment $TAG" "$GITHUB_SHA"
+          git push origin "$TAG"

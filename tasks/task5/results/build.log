@@ -1,0 +1,58 @@
+docker build -t booking-service-task5:task5-v1 -t booking-service-task5:task5-v2 ./booking-service
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 171B 0.0s done
+#1 DONE 0.1s
+
+#2 [internal] load metadata for docker.io/library/golang:1.21-alpine
+#2 ...
+
+#3 [auth] library/golang:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/golang:1.21-alpine
+#2 DONE 1.4s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 DONE 0.0s
+
+#6 [1/4] FROM docker.io/library/golang:1.21-alpine@sha256:2414035b086e3c42b99654c8b26e6f5b1b1598080d65fd03c7f499552ff4dc94
+#6 resolve docker.io/library/golang:1.21-alpine@sha256:2414035b086e3c42b99654c8b26e6f5b1b1598080d65fd03c7f499552ff4dc94 0.1s done
+#6 DONE 0.1s
+
+#5 [internal] load build context
+#5 transferring context: 1.22kB done
+#5 DONE 0.1s
+
+#7 [2/4] WORKDIR /app
+#7 CACHED
+
+#8 [3/4] COPY main.go .
+#8 DONE 0.4s
+
+#9 [4/4] RUN go build -o booking-service main.go
+#9 DONE 30.2s
+
+#10 exporting to image
+#10 exporting layers
+#10 exporting layers 14.4s done
+#10 exporting manifest sha256:bf8d5070591647161a8094d183cbe8dce1509317acfa462301e426725b0789af
+#10 exporting manifest sha256:bf8d5070591647161a8094d183cbe8dce1509317acfa462301e426725b0789af 0.1s done
+#10 exporting config sha256:840bc02700336ca45b78a4b54f63d3dfe71d525093d3f3d02f099e3b9680267f
+#10 exporting config sha256:840bc02700336ca45b78a4b54f63d3dfe71d525093d3f3d02f099e3b9680267f 0.1s done
+#10 exporting attestation manifest sha256:19816c58afc352095f0171fdf711dfde3c9c727376d1fb8443c81c23a9aa704b
+#10 exporting attestation manifest sha256:19816c58afc352095f0171fdf711dfde3c9c727376d1fb8443c81c23a9aa704b 0.2s done
+#10 exporting manifest list sha256:213e35cf55e1241e9e69c0a57790d1f005a8cf3d881b90ce49c87f4826f64d55
+#10 exporting manifest list sha256:213e35cf55e1241e9e69c0a57790d1f005a8cf3d881b90ce49c87f4826f64d55 0.2s done
+#10 naming to docker.io/library/booking-service-task5:task5-v1
+#10 naming to docker.io/library/booking-service-task5:task5-v1 0.0s done
+#10 unpacking to docker.io/library/booking-service-task5:task5-v1
+#10 unpacking to docker.io/library/booking-service-task5:task5-v1 4.0s done
+#10 naming to docker.io/library/booking-service-task5:task5-v2 0.0s done
+#10 unpacking to docker.io/library/booking-service-task5:task5-v2 0.1s done
+#10 DONE 19.2s

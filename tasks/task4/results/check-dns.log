@@ -1,0 +1,4 @@
+Проверка DNS в namespace 'staging'...
+pong
+pod "dns-test-1790866282-103532" deleted from staging namespace
+Success: DNS работает, /ping вернул pong

@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+x-feature-enabled: true
+x-service-version: v2
+date: Thu, 01 Oct 2026 15:45:10 GMT
+content-length: 7
+content-type: text/plain; charset=utf-8
+x-envoy-upstream-service-time: 3
+server: istio-envoy
+
+pong v2

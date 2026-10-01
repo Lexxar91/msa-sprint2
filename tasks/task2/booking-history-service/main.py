@@ -9,7 +9,9 @@ import aio_pika
 
 from history_db import HistoryDB
 
-RABBITMQ_URL: str = os.getenv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
+RABBITMQ_URL: str = os.getenv(
+    "RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/"
+)
 EXCHANGE_NAME: str = "bookings"
 QUEUE_NAME: str = "booking.history"
 ROUTING_KEY: str = "booking.created"
@@ -42,7 +44,10 @@ async def connect_with_retry(url: str, attempts: int, delay: int):
                 raise
             logging.warning(
                 "RabbitMQ unavailable (%s), attempt %d/%d — retry in %ds",
-                exc, attempt, attempts, delay,
+                exc,
+                attempt,
+                attempts,
+                delay,
             )
             await asyncio.sleep(delay)
 

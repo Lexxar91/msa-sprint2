@@ -1,0 +1,1 @@
+minikube image load booking-service-task5:task5-v1 booking-service-task5:task5-v2

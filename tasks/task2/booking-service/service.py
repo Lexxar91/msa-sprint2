@@ -30,7 +30,10 @@ class BookingService:
         self.publisher = publisher
 
     async def create_booking(
-        self, user_id: str, hotel_id: str, promo_code: str,
+        self,
+        user_id: str,
+        hotel_id: str,
+        promo_code: str,
     ) -> dict:
         """Создаёт новое бронирование.
 
@@ -52,13 +55,15 @@ class BookingService:
         discount = await self._resolve_promo_discount(promo_code, user_id)
         final_price = base_price - discount
 
-        saved = await self.repository.save({
-            "user_id": user_id,
-            "hotel_id": hotel_id,
-            "promo_code": promo_code or "",
-            "discount_percent": discount,
-            "price": final_price,
-        })
+        saved = await self.repository.save(
+            {
+                "user_id": user_id,
+                "hotel_id": hotel_id,
+                "promo_code": promo_code or "",
+                "discount_percent": discount,
+                "price": final_price,
+            }
+        )
         await self.publisher.publish_booking_created(saved)
         return saved
 
@@ -74,14 +79,28 @@ class BookingService:
         return await self.repository.find_by_user(user_id)
 
     async def _validate_user(self, user_id: str) -> None:
-        """Проверяет, что пользователь активен и не в чёрном списке."""
+        """Проверяет, что пользователь активен и не в чёрном списке.
+
+        Args:
+            user_id: Идентификатор пользователя.
+
+        Raises:
+            ValueError: Если проверка или операция завершается ошибкой.
+        """
         if not await self.client.is_user_active(user_id):
             raise ValueError("User is inactive")
         if await self.client.is_user_blacklisted(user_id):
             raise ValueError("User is blacklisted")
 
     async def _validate_hotel(self, hotel_id: str) -> None:
-        """Проверяет, что отель работает, является доверенным и не забронирован полностью."""
+        """Проверяет, что отель работает, является доверенным и не забронирован полностью.
+
+        Args:
+            hotel_id: Идентификатор отеля.
+
+        Raises:
+            ValueError: Если проверка или операция завершается ошибкой.
+        """
         if not await self.client.is_hotel_operational(hotel_id):
             raise ValueError("Hotel is not operational")
         if not await self.client.is_hotel_trusted(hotel_id):
@@ -93,14 +112,29 @@ class BookingService:
         """Определяет базовую цену в зависимости от статуса пользователя.
 
         VIP-пользователи получают скидку к базовой цене (80.0 вместо 100.0).
+
+        Args:
+            user_id: Идентификатор пользователя.
+
+        Returns:
+            Базовая цена или значение скидки в денежных единицах.
         """
         status = await self.client.get_user_status(user_id)
         return 80.0 if status and status.upper() == "VIP" else 100.0
 
-    async def _resolve_promo_discount(self, promo_code: str, user_id: str) -> float:
+    async def _resolve_promo_discount(
+        self, promo_code: str, user_id: str
+    ) -> float:
         """Рассчитывает скидку по промокоду.
 
         Если промокод не указан или невалиден, возвращает 0.0.
+
+        Args:
+            promo_code: Промокод бронирования.
+            user_id: Идентификатор пользователя.
+
+        Returns:
+            Базовая цена или значение скидки в денежных единицах.
         """
         if not promo_code:
             return 0.0

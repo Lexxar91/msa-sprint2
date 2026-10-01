@@ -1,0 +1,12 @@
+Поды в namespace 'staging':
+NAME                               READY   STATUS    RESTARTS   AGE
+booking-service-548cddfffd-gdpgk   1/1     Running   0          18s
+Service:
+NAME              TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+booking-service   ClusterIP   10.103.134.165   <none>        80/TCP    19s
+Endpoints:
+NAME                    ADDRESSTYPE   PORTS   ENDPOINTS     AGE
+booking-service-xkhrx   IPv4          8080    10.244.0.74   20s
+Для локального теста:
+kubectl port-forward svc/booking-service 8080:80 -n staging
+curl http://localhost:8080/ping

@@ -1,0 +1,12 @@
+{
+  "singleQuote": true,
+  "tabWidth": 2,
+  "printWidth": 100,
+  "embeddedLanguageFormatting": "off",
+  "overrides": [
+    {
+      "files": "*.java",
+      "options": { "tabWidth": 4 }
+    }
+  ]
+}

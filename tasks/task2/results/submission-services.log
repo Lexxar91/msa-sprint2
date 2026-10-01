@@ -1,0 +1,39 @@
+booking-service-1  | INFO:root:RabbitMQ connected, exchange 'bookings' ready
+booking-service-1  | INFO:root:gRPC server listening on [::]:9090
+booking-service-1  | INFO:root:CreateBooking user=test-user-3 hotel=test-hotel-1 promo=''
+booking-service-1  | INFO:httpx:HTTP Request: GET http://monolith:8080/api/users/test-user-3/active "HTTP/1.1 200 "
+booking-service-1  | INFO:httpx:HTTP Request: GET http://monolith:8080/api/users/test-user-3/blacklisted "HTTP/1.1 200 "
+booking-service-1  | INFO:httpx:HTTP Request: GET http://monolith:8080/api/hotels/test-hotel-1/operational "HTTP/1.1 200 "
+booking-service-1  | INFO:httpx:HTTP Request: GET http://monolith:8080/api/reviews/hotel/test-hotel-1/trusted "HTTP/1.1 200 "
+booking-service-1  | INFO:httpx:HTTP Request: GET http://monolith:8080/api/hotels/test-hotel-1/fully-booked "HTTP/1.1 200 "
+booking-service-1  | INFO:httpx:HTTP Request: GET http://monolith:8080/api/users/test-user-3/status "HTTP/1.1 200 "
+booking-service-1  | INFO:root:Published BookingCreated id=1
+booking-service-1  | INFO:root:CreateBooking user=test-user-2 hotel=test-hotel-1 promo='TESTCODE1'
+booking-service-1  | INFO:httpx:HTTP Request: GET http://monolith:8080/api/users/test-user-2/active "HTTP/1.1 200 "
+booking-service-1  | INFO:httpx:HTTP Request: GET http://monolith:8080/api/users/test-user-2/blacklisted "HTTP/1.1 200 "
+booking-service-1  | INFO:httpx:HTTP Request: GET http://monolith:8080/api/hotels/test-hotel-1/operational "HTTP/1.1 200 "
+booking-service-1  | INFO:httpx:HTTP Request: GET http://monolith:8080/api/reviews/hotel/test-hotel-1/trusted "HTTP/1.1 200 "
+booking-service-1  | INFO:httpx:HTTP Request: GET http://monolith:8080/api/hotels/test-hotel-1/fully-booked "HTTP/1.1 200 "
+booking-service-1  | INFO:httpx:HTTP Request: GET http://monolith:8080/api/users/test-user-2/status "HTTP/1.1 200 "
+booking-service-1  | INFO:httpx:HTTP Request: POST http://monolith:8080/api/promos/validate?code=TESTCODE1&userId=test-user-2 "HTTP/1.1 200 "
+booking-history-service-1  | INFO:root:history-service listening on queue 'booking.history'
+booking-history-service-1  | INFO:root:Saved history for booking id=1
+booking-history-service-1  | INFO:root:Saved history for booking id=2
+booking-subgraph-1         | Enabling inline tracing for this subgraph. To disable, use ApolloServerPluginInlineTraceDisabled.
+booking-subgraph-1         | ✅ Booking subgraph ready at http://localhost:4001/
+booking-service-1          | INFO:root:Published BookingCreated id=2
+booking-service-1          | INFO:root:CreateBooking user=test-user-0 hotel=test-hotel-1 promo=''
+booking-service-1          | INFO:httpx:HTTP Request: GET http://monolith:8080/api/users/test-user-0/active "HTTP/1.1 200 "
+booking-service-1          | INFO:root:ListBookings user=test-user-2
+booking-service-1          | INFO:root:CreateBooking user=test-user-1 hotel=test-hotel-1 promo=''
+booking-service-1          | INFO:httpx:HTTP Request: GET http://monolith:8080/api/users/test-user-1/active "HTTP/1.1 200 "
+booking-service-1          | INFO:httpx:HTTP Request: GET http://monolith:8080/api/users/test-user-1/blacklisted "HTTP/1.1 200 "
+booking-service-1          | INFO:root:CreateBooking user=test-user-2 hotel=test-hotel-3 promo=''
+booking-service-1          | INFO:httpx:HTTP Request: GET http://monolith:8080/api/users/test-user-2/active "HTTP/1.1 200 "
+booking-service-1          | INFO:httpx:HTTP Request: GET http://monolith:8080/api/users/test-user-2/blacklisted "HTTP/1.1 200 "
+booking-service-1          | INFO:httpx:HTTP Request: GET http://monolith:8080/api/hotels/test-hotel-3/operational "HTTP/1.1 200 "
+booking-service-1          | INFO:root:CreateBooking user=test-user-2 hotel=test-hotel-2 promo=''
+booking-service-1          | INFO:httpx:HTTP Request: GET http://monolith:8080/api/users/test-user-2/active "HTTP/1.1 200 "
+booking-service-1          | INFO:httpx:HTTP Request: GET http://monolith:8080/api/users/test-user-2/blacklisted "HTTP/1.1 200 "
+booking-service-1          | INFO:httpx:HTTP Request: GET http://monolith:8080/api/hotels/test-hotel-2/operational "HTTP/1.1 200 "
+booking-service-1          | INFO:httpx:HTTP Request: GET http://monolith:8080/api/reviews/hotel/test-hotel-2/trusted "HTTP/1.1 200 "

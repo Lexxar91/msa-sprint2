@@ -1,0 +1,10 @@
+
+✔ No validation issues found when analyzing:
+  - results/rendered-v1.yaml
+  - results/rendered-v2.yaml
+  - results/gateway.yaml
+  - results/destination-rule.yaml
+  - results/virtual-service.yaml
+  - results/envoy-filter.yaml
+  - /tmp/task5-gateway-context.yaml
+  - /tmp/task5-namespace-context.yaml

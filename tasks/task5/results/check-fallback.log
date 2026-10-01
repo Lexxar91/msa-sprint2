@@ -1,0 +1,23 @@
+cluster.outbound|80|v1|booking-service.default.svc.cluster.local;.outlier_detection.ejections_enforced_total: 1
+cluster.outbound|80|v1|booking-service.default.svc.cluster.local;.upstream_rq_retry: 2
+cluster.outbound|80|v1|booking-service.default.svc.cluster.local;.upstream_rq_retry_backoff_exponential: 2
+cluster.outbound|80|v1|booking-service.default.svc.cluster.local;.upstream_rq_retry_backoff_ratelimited: 0
+cluster.outbound|80|v1|booking-service.default.svc.cluster.local;.upstream_rq_retry_limit_exceeded: 1
+cluster.outbound|80|v1|booking-service.default.svc.cluster.local;.upstream_rq_retry_overflow: 0
+cluster.outbound|80|v1|booking-service.default.svc.cluster.local;.upstream_rq_retry_success: 0
+cluster.outbound|80|v2|booking-service.default.svc.cluster.local;.outlier_detection.ejections_enforced_total: 0
+cluster.outbound|80|v2|booking-service.default.svc.cluster.local;.upstream_rq_retry: 0
+cluster.outbound|80|v2|booking-service.default.svc.cluster.local;.upstream_rq_retry_backoff_exponential: 0
+cluster.outbound|80|v2|booking-service.default.svc.cluster.local;.upstream_rq_retry_backoff_ratelimited: 0
+cluster.outbound|80|v2|booking-service.default.svc.cluster.local;.upstream_rq_retry_limit_exceeded: 0
+cluster.outbound|80|v2|booking-service.default.svc.cluster.local;.upstream_rq_retry_overflow: 0
+cluster.outbound|80|v2|booking-service.default.svc.cluster.local;.upstream_rq_retry_success: 0
+cluster.outbound|80||booking-service.default.svc.cluster.local;.outlier_detection.ejections_enforced_total: 0
+Success: HTTP 503 от v1 вызвал retries, circuit breaker и fallback на v2
+deployment.apps/booking-service-v1 scaled
+pod/booking-service-v1-8598bd55f6-b52r5 condition met
+Success: при остановленной v1 все 20 запросов обслужила v2; fallback сработал 19 раз
+deployment.apps/booking-service-v1 scaled
+Waiting for deployment "booking-service-v1" rollout to finish: 0 out of 1 new replicas have been updated...
+Waiting for deployment "booking-service-v1" rollout to finish: 0 of 1 updated replicas are available...
+deployment "booking-service-v1" successfully rolled out

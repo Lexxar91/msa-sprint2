@@ -3,13 +3,15 @@ package com.hotelio.monolith.service;
 import com.hotelio.monolith.entity.Booking;
 import com.hotelio.monolith.entity.PromoCode;
 import com.hotelio.monolith.repository.BookingRepository;
+import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-
+/**
+ * Сервис BookingService в системе Hotelio.
+ */
 @Service
 public class BookingService {
 
@@ -21,12 +23,21 @@ public class BookingService {
     private final AppUserService userService;
     private final HotelService hotelService;
 
+    /**
+     * Создаёт BookingService с переданными зависимостями или данными.
+     *
+     * @param bookingRepository booking repository
+     * @param promoCodeService promo code service
+     * @param reviewService review service
+     * @param userService user service
+     * @param hotelService hotel service
+     */
     public BookingService(
-            BookingRepository bookingRepository,
-            PromoCodeService promoCodeService,
-            ReviewService reviewService,
-            AppUserService userService,
-            HotelService hotelService
+        BookingRepository bookingRepository,
+        PromoCodeService promoCodeService,
+        ReviewService reviewService,
+        AppUserService userService,
+        HotelService hotelService
     ) {
         this.bookingRepository = bookingRepository;
         this.promoCodeService = promoCodeService;
@@ -35,12 +46,33 @@ public class BookingService {
         this.hotelService = hotelService;
     }
 
+    /**
+     * Возвращает все бронирования или бронирования выбранного пользователя.
+     *
+     * @param userId идентификатор пользователя
+     * @return результат операции
+     */
     public List<Booking> listAll(String userId) {
-        return userId != null ? bookingRepository.findByUserId(userId) : bookingRepository.findAll();
+        return userId != null
+            ? bookingRepository.findByUserId(userId)
+            : bookingRepository.findAll();
     }
 
+    /**
+     * Создаёт бронирование после проверки пользователя, отеля и промокода.
+     *
+     * @param userId идентификатор пользователя
+     * @param hotelId идентификатор отеля
+     * @param promoCode промокод
+     * @return результат операции
+     */
     public Booking createBooking(String userId, String hotelId, String promoCode) {
-        log.info("Creating booking: userId={}, hotelId={}, promoCode={}", userId, hotelId, promoCode);
+        log.info(
+            "Creating booking: userId={}, hotelId={}, promoCode={}",
+            userId,
+            hotelId,
+            promoCode
+        );
 
         validateUser(userId);
         validateHotel(hotelId);
@@ -49,7 +81,12 @@ public class BookingService {
         double discount = resolvePromoDiscount(promoCode, userId);
 
         double finalPrice = basePrice - discount;
-        log.info("Final price calculated: base={}, discount={}, final={}", basePrice, discount, finalPrice);
+        log.info(
+            "Final price calculated: base={}, discount={}, final={}",
+            basePrice,
+            discount,
+            finalPrice
+        );
 
         Booking booking = new Booking();
         booking.setUserId(userId);
@@ -61,6 +98,12 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
+    /**
+     * Проверяет активность пользователя и отсутствие в чёрном списке.
+     *
+     * @param userId идентификатор пользователя
+     * @throws IllegalArgumentException если проверка не пройдена
+     */
     private void validateUser(String userId) {
         if (!userService.isUserActive(userId)) {
             log.warn("User {} is inactive", userId);
@@ -72,6 +115,12 @@ public class BookingService {
         }
     }
 
+    /**
+     * Проверяет доступность отеля и доверие к нему по отзывам.
+     *
+     * @param hotelId идентификатор отеля
+     * @throws IllegalArgumentException если проверка не пройдена
+     */
     private void validateHotel(String hotelId) {
         if (!hotelService.isHotelOperational(hotelId)) {
             log.warn("Hotel {} is not operational", hotelId);
@@ -87,18 +136,38 @@ public class BookingService {
         }
     }
 
+    /**
+     * Определяет базовую цену с учётом VIP-статуса.
+     *
+     * @param userId идентификатор пользователя
+     * @return результат операции
+     */
     private double resolveBasePrice(String userId) {
         Optional<String> statusOpt = userService.getUserStatus(userId);
-        return statusOpt.map(status -> {
-            boolean isVip = status.equalsIgnoreCase("VIP");
-            log.debug("User {} has status '{}', base price is {}", userId, status, isVip ? 80.0 : 100.0);
-            return isVip ? 80.0 : 100.0;
-        }).orElseGet(() -> {
-            log.debug("User {} has unknown status, default base price 100.0", userId);
-            return 100.0;
-        });
+        return statusOpt
+            .map(status -> {
+                boolean isVip = status.equalsIgnoreCase("VIP");
+                log.debug(
+                    "User {} has status '{}', base price is {}",
+                    userId,
+                    status,
+                    isVip ? 80.0 : 100.0
+                );
+                return isVip ? 80.0 : 100.0;
+            })
+            .orElseGet(() -> {
+                log.debug("User {} has unknown status, default base price 100.0", userId);
+                return 100.0;
+            });
     }
 
+    /**
+     * Определяет скидку по допустимому промокоду.
+     *
+     * @param promoCode промокод
+     * @param userId идентификатор пользователя
+     * @return результат операции
+     */
     private double resolvePromoDiscount(String promoCode, String userId) {
         if (promoCode == null) return 0.0;
 

@@ -1,0 +1,2 @@
+Success: /ping=pong, ENABLE_FEATURE_X=false проверен
+Success: /ping=pong, ENABLE_FEATURE_X=true проверен

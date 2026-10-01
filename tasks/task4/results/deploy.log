@@ -1,0 +1,19 @@
+🚀 Deploying to staging...
+helm upgrade --install booking-service ./helm/booking-service \
+    --set image.name=booking-service \
+    --set-string image.tag=task4-review \
+    --set image.pullPolicy=Never \
+    -f ./helm/booking-service/values-staging.yaml \
+    -n staging \
+    --create-namespace \
+    --atomic
+Flag --atomic has been deprecated, use --rollback-on-failure instead
+Release "booking-service" does not exist. Installing it now.
+NAME: booking-service
+LAST DEPLOYED: Thu Oct  1 17:51:01 2026
+NAMESPACE: staging
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+✅ Deployed to staging

@@ -1,0 +1,56 @@
+---
+# Source: booking-service/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-service-v2
+  labels:
+    app: booking-service
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: booking-service
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: booking-service
+        version: v2
+    spec:
+      containers:
+        - name: booking-service
+          image: "booking-service-task5:task5-v2"
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: SERVICE_VERSION
+              value: "v2"
+            - name: ENABLE_FEATURE_X
+              value: "true"
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 2
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi

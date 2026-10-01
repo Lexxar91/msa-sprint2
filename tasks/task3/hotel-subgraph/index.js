@@ -20,25 +20,35 @@ const typeDefs = gql`
 `;
 
 const resolvers = {
-Hotel: {
+  Hotel: {
+    /**
+     * Возвращает демонстрационные данные отеля по ссылке Федерации.
+     * @param {*} reference Ссылка Федерации с идентификатором.
+     * @returns {*} Результат обработки вызова.
+     */
     __resolveReference: async (reference) => {
       return {
         id: reference.id,
         name: `Hotel ${reference.id}`,
-        city: "Moscow",
+        city: 'Moscow',
         stars: 5,
-        address: "Red Square, 1"
+        address: 'Red Square, 1',
       };
     },
   },
   Booking: {
+    /**
+     * Возвращает демонстрационные данные отеля бронирования.
+     * @param {*} booking Бронирование с идентификатором отеля.
+     * @returns {*} Результат обработки вызова.
+     */
     hotel: async (booking) => {
       return {
         id: booking.hotelId,
         name: `Hotel ${booking.hotelId}`,
-        city: "Moscow",
+        city: 'Moscow',
         stars: 5,
-        address: "Red Square, 1"
+        address: 'Red Square, 1',
       };
     },
   },
@@ -50,6 +60,12 @@ const server = new ApolloServer({
 
 startStandaloneServer(server, {
   listen: { port: 4002 },
-}).then(() => {
-  console.log('✅ Hotel subgraph ready at http://localhost:4002/');
-});
+}).then(
+  /**
+   * Сообщает о запуске GraphQL-сервера.
+   * @returns {*} Результат обработки вызова.
+   */
+  () => {
+    console.log('✅ Hotel subgraph ready at http://localhost:4002/');
+  },
+);

@@ -1,0 +1,6 @@
+ISTIOCTL=/home/dmitriy/istio-1.30.3/bin/istioctl ./setup-istio.sh
+Istio уже установлен; используем существующую mesh
+client version: 1.30.3
+control plane version: 1.30.3
+data plane version: 1.30.3 (7 proxies)
+namespace/default not labeled

@@ -1,0 +1,91 @@
+{
+  "allowed": {
+    "http_status": 200,
+    "body": {
+      "data": {
+        "bookingsByUser": [
+          {
+            "id": "2",
+            "userId": "test-user-2",
+            "hotelId": "test-hotel-1",
+            "promoCode": "TESTCODE1",
+            "discountPercent": 10,
+            "hotel": {
+              "id": "test-hotel-1",
+              "name": "Hotel test-hotel-1",
+              "city": "Moscow",
+              "stars": 5,
+              "address": "Red Square, 1"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "missing_header": {
+    "http_status": 200,
+    "body": {
+      "errors": [
+        {
+          "message": "Unauthorized: missing userid header",
+          "path": [
+            "bookingsByUser"
+          ],
+          "extensions": {
+            "code": "INTERNAL_SERVER_ERROR",
+            "stacktrace": [
+              "GraphQLError: Unauthorized: missing userid header",
+              "    at downstreamServiceError (/app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:523:16)",
+              "    at /app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:343:59",
+              "    at Array.map (<anonymous>)",
+              "    at sendOperation (/app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:343:44)",
+              "    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+              "    at async /app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:257:49",
+              "    at async executeNode (/app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:201:17)",
+              "    at async executeNode (/app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:175:40)",
+              "    at async /app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:97:35",
+              "    at async /app/node_modules/@apollo/gateway/dist/index.js:112:38"
+            ],
+            "serviceName": "booking"
+          }
+        }
+      ],
+      "data": {
+        "bookingsByUser": null
+      }
+    }
+  },
+  "foreign_user": {
+    "http_status": 200,
+    "body": {
+      "errors": [
+        {
+          "message": "Forbidden: you can only view your own bookings",
+          "path": [
+            "bookingsByUser"
+          ],
+          "extensions": {
+            "code": "INTERNAL_SERVER_ERROR",
+            "stacktrace": [
+              "GraphQLError: Forbidden: you can only view your own bookings",
+              "    at downstreamServiceError (/app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:523:16)",
+              "    at /app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:343:59",
+              "    at Array.map (<anonymous>)",
+              "    at sendOperation (/app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:343:44)",
+              "    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+              "    at async /app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:257:49",
+              "    at async executeNode (/app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:201:17)",
+              "    at async executeNode (/app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:175:40)",
+              "    at async /app/node_modules/@apollo/gateway/dist/executeQueryPlan.js:97:35",
+              "    at async /app/node_modules/@apollo/gateway/dist/index.js:112:38"
+            ],
+            "serviceName": "booking"
+          }
+        }
+      ],
+      "data": {
+        "bookingsByUser": null
+      }
+    }
+  }
+}

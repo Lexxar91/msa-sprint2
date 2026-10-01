@@ -11,13 +11,10 @@ build:
   stage: build
   script:
 
-
 test:
   stage: test
   script:
 
-
 deploy:
   stage: deploy
   script:
- 

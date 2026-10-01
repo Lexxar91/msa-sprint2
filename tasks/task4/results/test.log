@@ -1,0 +1,3 @@
+./test-service.sh booking-service:task4-review
+Success: /ping=pong, ENABLE_FEATURE_X=false проверен
+Success: /ping=pong, ENABLE_FEATURE_X=true проверен

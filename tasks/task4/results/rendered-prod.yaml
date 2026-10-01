@@ -1,0 +1,101 @@
+---
+# Source: booking-service/templates/service.yaml
+# ═════════════════════════════════════════════════
+# SERVICE — стабильный адрес для доступа к подам
+# Поды умирают и рождаются с новыми IP — Service
+# даёт постоянное DNS-имя (booking-service)
+# ═════════════════════════════════════════════════
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: booking-service
+  labels:
+    app: booking-service
+
+spec:
+  # ClusterIP = доступен только внутри кластера
+  # (другие поды могут обратиться: http://booking-service)
+  type: ClusterIP
+  ports:
+    - port: 80           # внешний порт (80)
+      targetPort: 8080 # порт контейнера (8080)
+      protocol: TCP
+      name: http
+  # КУДА ОТПРАВЛЯТЬ ТРАФИК
+  # Находит поды с этой меткой (должна совпадать с deployment!)
+  selector:
+    app: booking-service
+---
+# Source: booking-service/templates/deployment.yaml
+# ═════════════════════════════════════════════════
+# DEPLOYMENT — управляет подами
+# Гарантирует, что всегда работает нужное количество
+# ═════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  # Имя из релиза Helm ( helm install my-release ... )
+  name: booking-service
+  labels:
+    app: booking-service
+
+spec:
+  # СКОЛЬКО КОПИЙ ПОДОВ ЗАПУСКАТЬ
+  # Берём из values.yaml → replicaCount
+  replicas: 3
+
+  # КАК НАЙТИ "СВОИ" ПОДЫ
+  # Deployment управляет только подами с этой меткой
+  selector:
+    matchLabels:
+      app: booking-service
+
+  # ШАБЛОН ПОДА
+  # Deployment создаёт поды по этому шаблону
+  template:
+    metadata:
+      # МЕТКИ — надеваются на каждый созданный под
+      # Должны СОВПАДАТЬ с selector выше!
+      labels:
+        app: booking-service
+    spec:
+      containers:
+        - name: booking-service
+          # Имя образа: name:tag из values.yaml
+          image: "booking-service:latest"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http    # имя порта — используется в пробах
+          # ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ из values.yaml
+          env:
+            - name: ENABLE_FEATURE_X
+              value: "false"
+          # ПРОБА ЖИЗНИ — не отвечает? → перезапусти под
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          # ПРОБА ГОТОВНОСТИ — не готов? → не отправляй трафик
+          readinessProbe:
+            failureThreshold: 2
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+          # РЕСУРСЫ
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 200m
+              memory: 256Mi

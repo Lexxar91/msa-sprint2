@@ -1,0 +1,9 @@
+spec:
+  template:
+    metadata:
+      annotations:
+        proxy.istio.io/config: |
+          proxyStatsMatcher:
+            inclusionRegexps:
+              - ".*booking.*outlier_detection.*"
+              - ".*booking.*upstream_rq_retry.*"

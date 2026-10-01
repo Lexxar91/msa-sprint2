@@ -48,10 +48,7 @@ class HistoryDB:
         """
         self.dsn = dsn
         self.pool = AsyncConnectionPool(
-            conninfo=dsn,
-            min_size=1,
-            max_size=10,
-            open=False
+            conninfo=dsn, min_size=1, max_size=10, open=False
         )
 
     async def open(self) -> None:

@@ -1,0 +1,6 @@
+ booking_id |   user_id   |   hotel_id   | price | discount_percent 
+------------+-------------+--------------+-------+------------------
+ 1          | test-user-3 | test-hotel-1 | 80.00 |             0.00
+ 2          | test-user-2 | test-hotel-1 | 90.00 |            10.00
+(2 rows)
+

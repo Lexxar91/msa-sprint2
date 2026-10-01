@@ -1,0 +1,4 @@
+2026-10-01
+Java: javac --release 17, 21 source files, exit code 0.
+REST: GET /api/hotels/by-city?city=Seoul, HTTP 200; see submission-hotels.json.
+Environment: isolated hotelio-review Compose project; migrated monolith API.

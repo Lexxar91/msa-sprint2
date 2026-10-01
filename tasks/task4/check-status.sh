@@ -1,24 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -e
+NAMESPACE=${1:-staging}
 
-echo "▶️ Checking booking-service deployment..."
-kubectl get pods -l app=booking-service
-
-echo
-echo "▶️ Checking service..."
-kubectl get svc booking-service || echo "(No service found)"
-
-echo
-echo "▶️ Helm release:"
-helm list | grep booking-service || echo "(No release found)"
-
-echo
-echo "▶️ Port-forward to test service locally:"
-echo "  kubectl port-forward svc/booking-service 8080:80"
-echo "  Then in another terminal:"
-echo "    curl http://localhost:8080/ping"
-
-echo
-echo "▶️ Quick curl (if port-forward already running):"
-curl --fail http://localhost:8080/ping && echo "✅ Reachable" || echo "❌ Not responding"
+echo "Поды в namespace '$NAMESPACE':"
+kubectl get pods -l app=booking-service -n "$NAMESPACE"
+echo "Service:"
+kubectl get svc booking-service -n "$NAMESPACE"
+echo "Endpoints:"
+kubectl get endpointslices -l kubernetes.io/service-name=booking-service -n "$NAMESPACE"
+echo "Для локального теста:"
+echo "kubectl port-forward svc/booking-service 8080:80 -n $NAMESPACE"
+echo "curl http://localhost:8080/ping"

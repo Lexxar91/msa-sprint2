@@ -1,0 +1,24 @@
+helm upgrade --install booking-service-v1 ./helm/booking-service -f results/values-v1.yaml --set image.name=booking-service-task5 --set-string image.tag=task5-v1 -n default --wait --timeout 180s
+Release "booking-service-v1" does not exist. Installing it now.
+NAME: booking-service-v1
+LAST DEPLOYED: Thu Oct  1 18:35:27 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+helm upgrade --install booking-service-v2 ./helm/booking-service -f results/values-v2.yaml --set image.name=booking-service-task5 --set-string image.tag=task5-v2 -n default --wait --timeout 180s
+Release "booking-service-v2" does not exist. Installing it now.
+NAME: booking-service-v2
+LAST DEPLOYED: Thu Oct  1 18:35:55 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+kubectl apply -f results/gateway.yaml -f results/destination-rule.yaml -f results/virtual-service.yaml -f results/envoy-filter.yaml
+gateway.networking.istio.io/booking-service-gateway created
+destinationrule.networking.istio.io/booking-service created
+virtualservice.networking.istio.io/booking-service created
+Warning: EnvoyFilter exposes internal implementation details that may change at any time. Prefer other APIs if possible, and exercise extreme caution, especially around upgrades.
+envoyfilter.networking.istio.io/booking-service-feature-fallback created

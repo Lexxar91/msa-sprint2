@@ -1,0 +1,3 @@
+📦 Loading image into Minikube...
+minikube image load booking-service:task4-review
+✅ Image loaded into Minikube

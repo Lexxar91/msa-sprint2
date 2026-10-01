@@ -1,0 +1,19 @@
+./check-status.sh default
+Поды в namespace 'default':
+NAME                                  READY   STATUS    RESTARTS   AGE
+booking-service-v1-8598bd55f6-b52r5   2/2     Running   0          2m36s
+booking-service-v2-57b8c5fd4-hcdhh    2/2     Running   0          2m9s
+Service:
+NAME              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+booking-service   ClusterIP   10.96.148.236   <none>        80/TCP    2m37s
+Endpoints:
+NAME                    ADDRESSTYPE   PORTS   ENDPOINTS                 AGE
+booking-service-w4h54   IPv4          8080    10.244.0.76,10.244.0.77   2m37s
+Для локального теста:
+kubectl port-forward svc/booking-service 8080:80 -n default
+curl http://localhost:8080/ping
+./check-dns.sh default
+Проверка DNS в namespace 'default'...
+pong v1
+pod "dns-test-1790869085-150734" deleted from default namespace
+Success: DNS работает, /ping вернул pong с версией

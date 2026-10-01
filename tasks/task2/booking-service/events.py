@@ -9,7 +9,9 @@ from typing import Optional
 import aio_pika
 from aio_pika.abc import AbstractExchange
 
-RABBITMQ_URL: str = os.getenv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
+RABBITMQ_URL: str = os.getenv(
+    "RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/"
+)
 EXCHANGE_NAME: str = "bookings"
 ROUTING_KEY_CREATED: str = "booking.created"
 

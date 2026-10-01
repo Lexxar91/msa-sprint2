@@ -42,7 +42,8 @@ async def serve() -> None:
     service = BookingService(MonolithClient(), repository, publisher)
     server = grpc.aio.server()  # type: ignore[attr-defined]
     booking_pb2_grpc.add_BookingServiceServicer_to_server(
-        BookingServiceServicer(service), server,
+        BookingServiceServicer(service),
+        server,
     )
     listen_addr = f"[::]:{GRPC_PORT}"
     server.add_insecure_port(listen_addr)

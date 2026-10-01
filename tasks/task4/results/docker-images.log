@@ -1,0 +1,3 @@
+IMAGE                          ID             DISK USAGE   CONTENT SIZE   EXTRA
+booking-service:latest         9e8637ee8fd4        437MB         92.5MB        
+booking-service:task4-review   84c7174f1015        429MB         90.2MB        

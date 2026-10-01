@@ -1,0 +1,13 @@
+replicaCount: 3
+
+resources:
+  requests:
+    cpu: '200m'
+    memory: '256Mi'
+  limits:
+    cpu: '500m'
+    memory: '512Mi'
+
+env:
+  - name: ENABLE_FEATURE_X
+    value: 'false'

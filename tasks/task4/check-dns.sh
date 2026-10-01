@@ -1,10 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -e
+NAMESPACE=${1:-staging}
+SERVICE_NAME=${2:-booking-service}
+POD_NAME="dns-test-$(date +%s)-$$"
 
-echo "▶️ Running in-cluster DNS test..."
-
-kubectl run dns-test --rm -it \
-  --image=busybox \
+echo "Проверка DNS в namespace '$NAMESPACE'..."
+kubectl run "$POD_NAME" --rm -i --attach=true \
+  --image=busybox:1.36 \
   --restart=Never \
-  -- wget -qO- http://booking-service/ping && echo "✅ Success" || echo "❌ Failed"
+  --namespace="$NAMESPACE" \
+  --pod-running-timeout=120s \
+  -- sh -c 'response=$(wget -qO- -T 5 "$1") && [ "$response" = pong ] && printf "%s\n" "$response"' \
+  sh "http://$SERVICE_NAME/ping"
+echo "Success: DNS работает, /ping вернул pong"

@@ -1,0 +1,82 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: booking-service-feature-fallback
+  namespace: istio-system
+spec:
+  workloadSelector:
+    labels:
+      istio: ingressgateway
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: GATEWAY
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+              subFilter:
+                name: envoy.filters.http.router
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.lua
+          typed_config:
+            '@type': type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+            defaultSourceCode:
+              inlineString: |
+                --- Выбирает версию сервиса по заголовку HTTP-запроса.
+                -- @param handle Контекст запроса Envoy.
+                function envoy_on_request(handle)
+                  local headers = handle:headers()
+                  if headers:get(":authority") ~= "booking.task5.local" then
+                    return
+                  end
+                  headers:remove("x-task5-version")
+                  local feature = headers:get("x-feature-enabled") == "true"
+                  if feature then
+                    headers:add("x-task5-version", "v2")
+                    handle:clearRouteCache()
+                  end
+                  handle:streamInfo():dynamicMetadata():set("task5", "request", {
+                    method = headers:get(":method"),
+                    path = headers:get(":path"),
+                    feature = feature
+                  })
+                end
+
+                --- Возвращает ответ v2 при ошибке безопасного GET /ping.
+                -- @param handle Контекст ответа Envoy.
+                function envoy_on_response(handle)
+                  local metadata = handle:streamInfo():dynamicMetadata():get("task5")
+                  local request = metadata and metadata["request"]
+                  local status = tonumber(handle:headers():get(":status")) or 0
+                  if not request or request.method ~= "GET" or request.path ~= "/ping"
+                    or request.feature or status < 500
+                    or handle:headers():get("x-service-version") == "v2" then
+                    return
+                  end
+                  handle:body(true)
+                  local fallback_headers, fallback_body = handle:httpCall(
+                    "outbound|80|v2|booking-service.default.svc.cluster.local",
+                    {
+                      [":method"] = "GET",
+                      [":path"] = "/ping",
+                      [":authority"] = "booking-service.default.svc.cluster.local"
+                    },
+                    nil,
+                    2000
+                  )
+                  local fallback_status = tonumber(fallback_headers[":status"]) or 0
+                  if fallback_status >= 200 and fallback_status < 300 then
+                    fallback_body = fallback_body or ""
+                    handle:headers():replace(":status", tostring(fallback_status))
+                    handle:headers():replace("x-service-version", "v2")
+                    handle:headers():replace("x-task5-fallback", "v2")
+                    handle:headers():replace("x-feature-enabled", "false")
+                    handle:headers():remove("x-envoy-upstream-service-time")
+                    handle:headers():replace("content-type", "text/plain; charset=utf-8")
+                    handle:body(true):setBytes(fallback_body)
+                    handle:headers():replace("content-length", tostring(#fallback_body))
+                  end
+                end

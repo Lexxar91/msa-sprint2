@@ -1,0 +1,17 @@
+registry.k8s.io/pause:3.10.1
+registry.k8s.io/kube-scheduler:v1.35.1
+registry.k8s.io/kube-proxy:v1.35.1
+registry.k8s.io/kube-controller-manager:v1.35.1
+registry.k8s.io/kube-apiserver:v1.35.1
+registry.k8s.io/etcd:3.6.6-0
+registry.k8s.io/coredns/coredns:v1.13.1
+registry.istio.io/release/proxyv2:1.30.3
+registry.istio.io/release/pilot:1.30.3
+ghcr.io/prometheus-operator/prometheus-config-reloader:v0.89.0
+gcr.io/k8s-minikube/storage-provisioner:v5
+docker.io/prom/prometheus:v3.10.0
+docker.io/polinux/stress:latest
+docker.io/library/busybox:1.36
+docker.io/library/booking-service:task4-review
+docker.io/jaegertracing/jaeger:2.14.0
+docker.io/grafana/grafana:12.0.1

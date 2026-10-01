@@ -19,21 +19,11 @@ System_Boundary(new_services, "Мигрированные сервисы (Python
 }
 
 Container(rabbitmq, "RabbitMQ", "Message Broker", "Topic exchange: события BookingCreated / BookingUpdated")
-
-' Клиент ходит в фасад
 Rel(user, monolith_app, "Использует API", "HTTPS")
-
-' Strangler Fig: фасад проксирует бронирования в новый сервис
 Rel(monolith_app, booking_svc, "Проксирует POST /api/bookings", "gRPC :9090")
-
-' Данные для валидации — через REST из монолита (по ТЗ, без переноса логики)
 Rel(booking_svc, monolith_app, "Получает отель / пользователя / промокод", "REST")
-
-' Работа с данными
 Rel(booking_svc, booking_db, "Читает и пишет бронирования", "SQL")
 Rel(monolith_app, shared_db, "Читает и пишет", "SQL")
-
-' Асинхронщина через RabbitMQ
 Rel(booking_svc, rabbitmq, "Публикует BookingCreated / BookingUpdated", "AMQP")
 Rel(rabbitmq, history_svc, "Доставляет события (подписка на очередь)", "AMQP")
 Rel(history_svc, history_db, "Пишет историю и агрегаты", "SQL")

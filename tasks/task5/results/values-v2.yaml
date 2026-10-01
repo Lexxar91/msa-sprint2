@@ -1,0 +1,14 @@
+version: v2
+replicaCount: 1
+image:
+  name: booking-service-task5
+  tag: task5-v2
+  pullPolicy: Never
+service:
+  create: false
+  name: booking-service
+env:
+  - name: SERVICE_VERSION
+    value: v2
+  - name: ENABLE_FEATURE_X
+    value: 'true'
